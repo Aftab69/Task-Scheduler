@@ -136,55 +136,57 @@ function TaskScheduler() {
 
   return (
     <div className="task-scheduler">
-      <h1>Task Scheduler</h1>
+      <div className="white-container">
+        <h1>Task Scheduler</h1>
 
-      {error && (
-        <div className="error-message">
-          <p>{error}</p>
-          <button onClick={loadTasks} className="retry-button">Retry</button>
-        </div>
-      )}
+        {error && (
+          <div className="error-message">
+            <p>{error}</p>
+            <button onClick={loadTasks} className="retry-button">Retry</button>
+          </div>
+        )}
 
-      <div className="app-content">
-        <div className="main-content">
-          <TaskForm onAddTask={addTask} />
+        <div className="app-content">
+          <div className="main-content">
+            <TaskForm onAddTask={addTask} />
 
-          <div className="task-filters">
-            <button
-              className={filter === 'all' ? 'active' : ''}
-              onClick={() => setFilter('all')}
-            >
-              All ({tasks.length})
-            </button>
-            <button
-              className={filter === 'active' ? 'active' : ''}
-              onClick={() => setFilter('active')}
-            >
-              Active ({tasks.filter(t => !t.completed).length})
-            </button>
-            <button
-              className={filter === 'completed' ? 'active' : ''}
-              onClick={() => setFilter('completed')}
-            >
-              Completed ({tasks.filter(t => t.completed).length})
-            </button>
+            <div className="task-filters">
+              <button
+                className={filter === 'all' ? 'active' : ''}
+                onClick={() => setFilter('all')}
+              >
+                All ({tasks.length})
+              </button>
+              <button
+                className={filter === 'active' ? 'active' : ''}
+                onClick={() => setFilter('active')}
+              >
+                Active ({tasks.filter(t => !t.completed).length})
+              </button>
+              <button
+                className={filter === 'completed' ? 'active' : ''}
+                onClick={() => setFilter('completed')}
+              >
+                Completed ({tasks.filter(t => t.completed).length})
+              </button>
+            </div>
+
+            <TaskList
+              groupedTasks={groupedTasks}
+              sortedDates={sortedDates}
+              onToggleTask={toggleTask}
+              onDeleteTask={deleteTask}
+            />
           </div>
 
-          <TaskList
-            groupedTasks={groupedTasks}
-            sortedDates={sortedDates}
+          <CalendarWidget
+            tasks={getFilteredTasks()}
+            onDateSelect={handleDateSelect}
+            selectedDate={selectedDate}
             onToggleTask={toggleTask}
             onDeleteTask={deleteTask}
           />
         </div>
-
-        <CalendarWidget
-          tasks={getFilteredTasks()}
-          onDateSelect={handleDateSelect}
-          selectedDate={selectedDate}
-          onToggleTask={toggleTask}
-          onDeleteTask={deleteTask}
-        />
       </div>
     </div>
   );
