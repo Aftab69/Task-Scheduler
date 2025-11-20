@@ -6,13 +6,12 @@ const getApiBaseUrl = () => {
 
   // Check if we're on Render (production)
   if (window.location.hostname.includes('onrender.com')) {
-    // Extract the service name from current hostname and construct backend URL
-    const currentHost = window.location.hostname;
-    if (currentHost.includes('frontend')) {
-      return currentHost.replace('frontend', 'backend');
+    // Use the environment variable or fallback to correct backend URL
+    if (import.meta.env.VITE_API_URL) {
+      return import.meta.env.VITE_API_URL;
     }
     // Fallback for Render production
-    return `https://task-scheduler-backend.onrender.com/api`;
+    return `https://task-scheduler-backend-i109.onrender.com/api`;
   }
 
   // In development, detect if we're accessing from a network IP
