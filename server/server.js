@@ -20,6 +20,7 @@ const allowedOrigins = [
   'http://localhost:5178',
   'http://localhost:5179',
   'https://task-scheduler-frontend.onrender.com',
+  'https://task-scheduler-frontend-fzgx.onrender.com',
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
@@ -314,7 +315,12 @@ app.put('/api/tasks/shift', authenticate, async (req, res) => {
   }
 });
 
-// Health check endpoint
+// Health check endpoint for Render monitoring
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', message: 'Task Scheduler API is running' });
+});
+
+// API health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Task Scheduler API is running' });
 });
