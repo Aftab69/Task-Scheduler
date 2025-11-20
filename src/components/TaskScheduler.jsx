@@ -10,6 +10,8 @@ function TaskScheduler() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const tasksPerPage = 10; // Show 10 tasks per page
 
   // Load tasks from MongoDB Atlas on mount
   useEffect(() => {
@@ -75,6 +77,55 @@ function TaskScheduler() {
     }
   };
 
+  // Reset current page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter]);
+
+  // Get paginated tasks
+  const getPaginatedTasks = () => {
+    const filteredTasks = getFilteredTasks();
+    const startIndex = (currentPage - 1) * tasksPerPage;
+    const endIndex = startIndex + tasksPerPage;
+    return filteredTasks.slice(startIndex, endIndex);
+  };
+
+  // Get total pages
+  const getTotalPages = () => {
+    const filteredTasks = getFilteredTasks();
+    return Math.ceil(filteredTasks.length / tasksPerPage);
+  };
+
+  // Handle page change
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Get tasks for current page (for display)
+  const getCurrentPageTasks = () => {
+    const paginatedTasks = getPaginatedTasks();
+    const grouped = {};
+
+    paginatedTasks.forEach(task => {
+      if (!grouped[task.date]) {
+        grouped[task.date] = [];
+      }
+      grouped[task.date].push(task);
+    });
+
+    // Sort tasks within each date (incomplete first, then by creation time)
+    Object.keys(grouped).forEach(date => {
+      grouped[date].sort((a, b) => {
+        if (a.completed !== b.completed) {
+          return a.completed ? 1 : -1;
+        }
+        return a.createdAt - b.createdAt;
+      });
+    });
+
+    return grouped;
+  };
+
   // Handle date selection from calendar
   const handleDateSelect = (date) => {
     setSelectedDate(date);
@@ -119,8 +170,10 @@ function TaskScheduler() {
     return grouped;
   };
 
-  const groupedTasks = getTasksByDate();
+  const groupedTasks = getCurrentPageTasks();
   const sortedDates = Object.keys(groupedTasks).sort();
+  const totalPages = getTotalPages();
+  const totalTasks = getFilteredTasks().length;
 
   // Show loading state
   if (loading) {
@@ -147,45 +200,80 @@ function TaskScheduler() {
         )}
 
         <div className="app-content">
-          <div className="main-content">
-            <TaskForm onAddTask={addTask} />
-
-            <div className="task-filters">
-              <button
-                className={filter === 'all' ? 'active' : ''}
-                onClick={() => setFilter('all')}
-              >
-                All ({tasks.length})
-              </button>
-              <button
-                className={filter === 'active' ? 'active' : ''}
-                onClick={() => setFilter('active')}
-              >
-                Active ({tasks.filter(t => !t.completed).length})
-              </button>
-              <button
-                className={filter === 'completed' ? 'active' : ''}
-                onClick={() => setFilter('completed')}
-              >
-                Completed ({tasks.filter(t => t.completed).length})
-              </button>
+          {/* Main layout: Calendar left, Tasks right */}
+          <div className="main-layout">
+            {/* Left: Calendar Section */}
+            <div className="calendar-section">
+              <CalendarWidget
+                tasks={getFilteredTasks()}
+                onDateSelect={handleDateSelect}
+                selectedDate={selectedDate}
+                onToggleTask={toggleTask}
+                onDeleteTask={deleteTask}
+              />
             </div>
 
-            <TaskList
-              groupedTasks={groupedTasks}
-              sortedDates={sortedDates}
-              onToggleTask={toggleTask}
-              onDeleteTask={deleteTask}
-            />
-          </div>
+            {/* Right: Tasks Section */}
+            <div className="tasks-section">
+              <TaskForm onAddTask={addTask} />
 
-          <CalendarWidget
-            tasks={getFilteredTasks()}
-            onDateSelect={handleDateSelect}
-            selectedDate={selectedDate}
-            onToggleTask={toggleTask}
-            onDeleteTask={deleteTask}
-          />
+              <div className="task-filters">
+                <button
+                  className={filter === 'all' ? 'active' : ''}
+                  onClick={() => setFilter('all')}
+                >
+                  All ({tasks.length})
+                </button>
+                <button
+                  className={filter === 'active' ? 'active' : ''}
+                  onClick={() => setFilter('active')}
+                >
+                  Active ({tasks.filter(t => !t.completed).length})
+                </button>
+                <button
+                  className={filter === 'completed' ? 'active' : ''}
+                  onClick={() => setFilter('completed')}
+                >
+                  Completed ({tasks.filter(t => t.completed).length})
+                </button>
+              </div>
+
+              <TaskList
+                groupedTasks={groupedTasks}
+                sortedDates={sortedDates}
+                onToggleTask={toggleTask}
+                onDeleteTask={deleteTask}
+              />
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="pagination-container">
+                  <div className="pagination-info">
+                    <span>Showing {((currentPage - 1) * tasksPerPage) + 1}-{Math.min(currentPage * tasksPerPage, totalTasks)} of {totalTasks} tasks</span>
+                  </div>
+                  <div className="pagination-controls">
+                    <button
+                      className="pagination-button"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      ← Previous
+                    </button>
+                    <span className="page-info">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <button
+                      className="pagination-button"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next →
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

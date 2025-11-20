@@ -32,12 +32,7 @@ function TaskList({ groupedTasks, sortedDates, onToggleTask, onDeleteTask }) {
     });
   };
 
-  const getTaskCountText = (tasks) => {
-    const completed = tasks.filter(t => t.completed).length;
-    const total = tasks.length;
-    return `${completed} of ${total} completed`;
-  };
-
+  
   if (sortedDates.length === 0) {
     return (
       <div className="empty-state">
@@ -54,7 +49,6 @@ function TaskList({ groupedTasks, sortedDates, onToggleTask, onDeleteTask }) {
           <div key={date} className="date-group">
             <div className="date-header">
               <h3>{formatDate(date)}</h3>
-              <span className="task-count">{getTaskCountText(tasks)}</span>
             </div>
             <div className="tasks-for-date">
               {tasks.map(task => (

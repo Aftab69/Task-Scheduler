@@ -182,13 +182,7 @@ const CalendarWidget = ({ tasks, onDateSelect, selectedDate, onToggleTask, onDel
                   </div>
                 )}
 
-                {/* Task count */}
-                {dateTasks.length > 0 && (
-                  <div className="task-count">
-                    {dateTasks.length}
-                  </div>
-                )}
-              </div>
+                </div>
             );
           })}
         </div>

@@ -154,7 +154,8 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`API endpoint: http://localhost:${PORT}/api`);
+  console.log(`Network access: http://192.168.0.104:${PORT}/api`);
 });

@@ -13,9 +13,16 @@
       "Bash(taskkill:*)",
       "Bash(netstat:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npx playwright install:*)",
+      "Bash(ipconfig:*)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "playwright"
+  ]
 }
