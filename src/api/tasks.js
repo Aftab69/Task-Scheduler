@@ -1,12 +1,24 @@
 import { API_BASE_URL } from './config';
 
+// Helper function to get auth headers
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` }),
+  };
+};
+
 export const tasksAPI = {
   // Get all tasks
   getAll: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/tasks`);
+      const response = await fetch(`${API_BASE_URL}/tasks`, {
+        headers: getAuthHeaders(),
+      });
       if (!response.ok) {
-        throw new Error('Failed to fetch tasks');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch tasks');
       }
       return await response.json();
     } catch (error) {
@@ -18,9 +30,12 @@ export const tasksAPI = {
   // Get filtered tasks
   getFiltered: async (filter) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/tasks/filter/${filter}`);
+      const response = await fetch(`${API_BASE_URL}/tasks/filter/${filter}`, {
+        headers: getAuthHeaders(),
+      });
       if (!response.ok) {
-        throw new Error('Failed to fetch filtered tasks');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch filtered tasks');
       }
       return await response.json();
     } catch (error) {
@@ -34,13 +49,12 @@ export const tasksAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/tasks`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(taskData),
       });
       if (!response.ok) {
-        throw new Error('Failed to create task');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create task');
       }
       return await response.json();
     } catch (error) {
@@ -54,9 +68,11 @@ export const tasksAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/tasks/${id}/toggle`, {
         method: 'PUT',
+        headers: getAuthHeaders(),
       });
       if (!response.ok) {
-        throw new Error('Failed to toggle task');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to toggle task');
       }
       return await response.json();
     } catch (error) {
@@ -70,9 +86,11 @@ export const tasksAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
       });
       if (!response.ok) {
-        throw new Error('Failed to delete task');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete task');
       }
       return await response.json();
     } catch (error) {

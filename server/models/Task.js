@@ -23,11 +23,17 @@ const taskSchema = new mongoose.Schema({
   createdAt: {
     type: Number,
     default: Date.now
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   }
 });
 
 // Index for better query performance
 taskSchema.index({ date: 1, createdAt: 1 });
 taskSchema.index({ completed: 1 });
+taskSchema.index({ user: 1, date: 1 });
 
 export default mongoose.model('Task', taskSchema);

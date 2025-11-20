@@ -3,6 +3,8 @@ dotenv.config();
 import express from 'express';
 import connectDB from './db.js';
 import Task from './models/Task.js';
+import User from './models/User.js';
+import { authenticate, generateToken } from './middleware/auth.js';
 
 const app = express();
 const PORT = 5003;
@@ -43,10 +45,109 @@ const sortTasks = (tasks) => {
 
 // API Routes
 
-// Get all tasks
-app.get('/api/tasks', async (req, res) => {
+// Authentication Routes
+
+// Register user
+app.post('/api/auth/register', async (req, res) => {
   try {
-    const tasks = await Task.find().sort({ date: 1, createdAt: 1 });
+    const { username, email, password, firstName, lastName } = req.body;
+
+    // Validate input
+    if (!username || !email || !password || !firstName || !lastName) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }]
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        message: existingUser.email === email ? 'Email already registered' : 'Username already taken'
+      });
+    }
+
+    // Create new user
+    const user = new User({
+      username,
+      email,
+      password,
+      firstName,
+      lastName
+    });
+
+    await user.save();
+
+    // Generate token
+    const token = generateToken(user._id);
+
+    res.status(201).json({
+      message: 'User registered successfully',
+      user: user.toProfileJSON(),
+      token
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: error.message });
+    }
+    res.status(500).json({ message: 'Server error during registration' });
+  }
+});
+
+// Login user
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Check password
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Generate token
+    const token = generateToken(user._id);
+
+    res.json({
+      message: 'Login successful',
+      user: user.toProfileJSON(),
+      token
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error during login' });
+  }
+});
+
+// Get current user profile (protected route)
+app.get('/api/auth/profile', authenticate, async (req, res) => {
+  try {
+    res.json({
+      user: req.user
+    });
+  } catch (error) {
+    console.error('Profile error:', error);
+    res.status(500).json({ message: 'Server error fetching profile' });
+  }
+});
+
+// Get all tasks (protected route)
+app.get('/api/tasks', authenticate, async (req, res) => {
+  try {
+    const tasks = await Task.find({ user: req.user._id }).sort({ date: 1, createdAt: 1 });
     res.json(tasks);
   } catch (error) {
     console.error('Error fetching tasks:', error);
@@ -54,11 +155,11 @@ app.get('/api/tasks', async (req, res) => {
   }
 });
 
-// Get filtered tasks
-app.get('/api/tasks/filter/:filter', async (req, res) => {
+// Get filtered tasks (protected route)
+app.get('/api/tasks/filter/:filter', authenticate, async (req, res) => {
   try {
     const { filter } = req.params;
-    let query = {};
+    let query = { user: req.user._id };
 
     if (filter === 'active') {
       query.completed = false;
@@ -74,8 +175,8 @@ app.get('/api/tasks/filter/:filter', async (req, res) => {
   }
 });
 
-// Create a new task
-app.post('/api/tasks', async (req, res) => {
+// Create a new task (protected route)
+app.post('/api/tasks', authenticate, async (req, res) => {
   try {
     const { text, date } = req.body;
 
@@ -92,7 +193,8 @@ app.post('/api/tasks', async (req, res) => {
       text: text.trim(),
       date,
       completed: false,
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      user: req.user._id
     });
 
     const savedTask = await newTask.save();
@@ -103,12 +205,12 @@ app.post('/api/tasks', async (req, res) => {
   }
 });
 
-// Toggle task completion
-app.put('/api/tasks/:id/toggle', async (req, res) => {
+// Toggle task completion (protected route)
+app.put('/api/tasks/:id/toggle', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const task = await Task.findOne({ id });
+    const task = await Task.findOne({ id, user: req.user._id });
 
     if (!task) {
       return res.status(404).json({ message: 'Task not found' });
@@ -124,12 +226,12 @@ app.put('/api/tasks/:id/toggle', async (req, res) => {
   }
 });
 
-// Delete a task
-app.delete('/api/tasks/:id', async (req, res) => {
+// Delete a task (protected route)
+app.delete('/api/tasks/:id', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const task = await Task.findOneAndDelete({ id });
+    const task = await Task.findOneAndDelete({ id, user: req.user._id });
 
     if (!task) {
       return res.status(404).json({ message: 'Task not found' });
@@ -142,8 +244,8 @@ app.delete('/api/tasks/:id', async (req, res) => {
   }
 });
 
-// Shift tasks by specified days
-app.put('/api/tasks/shift', async (req, res) => {
+// Shift tasks by specified days (protected route)
+app.put('/api/tasks/shift', authenticate, async (req, res) => {
   try {
     const { days } = req.body;
 
@@ -156,8 +258,8 @@ app.put('/api/tasks/shift', async (req, res) => {
       return res.status(400).json({ message: 'Days must be a valid number' });
     }
 
-    // Find all active (non-completed) tasks
-    const activeTasks = await Task.find({ completed: false });
+    // Find all active (non-completed) tasks for this user
+    const activeTasks = await Task.find({ completed: false, user: req.user._id });
 
     if (activeTasks.length === 0) {
       return res.json({ message: 'No active tasks found to shift', updatedTasks: [] });

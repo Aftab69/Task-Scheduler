@@ -3,6 +3,7 @@ import TaskForm from './TaskForm';
 import TaskList from './TaskList';
 import CalendarWidget from './CalendarWidget';
 import { tasksAPI } from '../api/tasks';
+import { useAuth } from '../context/AuthContext';
 
 function TaskScheduler() {
   const [tasks, setTasks] = useState([]);
@@ -12,6 +13,7 @@ function TaskScheduler() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const tasksPerPage = 10; // Show 10 tasks per page
+  const { user, logout } = useAuth();
 
   // Load tasks from MongoDB Atlas on mount
   useEffect(() => {
@@ -81,10 +83,12 @@ function TaskScheduler() {
   const shiftTasks = async (days) => {
     try {
       console.log(`Shifting all active tasks by ${days} days`);
+      const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:5003/api/tasks/shift', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
         },
         body: JSON.stringify({ days }),
       });
@@ -221,7 +225,17 @@ function TaskScheduler() {
   return (
     <div className="task-scheduler">
       <div className="white-container">
-        <h1>Task Scheduler</h1>
+        <div className="header-section">
+          <h1>Task Scheduler</h1>
+          <div className="user-info">
+            <span className="welcome-message">
+              Welcome, {user?.firstName || user?.username}!
+            </span>
+            <button onClick={logout} className="logout-button">
+              Logout
+            </button>
+          </div>
+        </div>
 
         {error && (
           <div className="error-message">
