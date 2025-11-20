@@ -15,13 +15,19 @@ const CalendarWidget = ({ tasks, onDateSelect, selectedDate, onToggleTask, onDel
 
   // Helper function to get tasks for a specific date
   const getTasksForDate = (date) => {
-    const dateString = date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateString = `${year}-${month}-${day}`;
     return tasks.filter(task => task.date === dateString);
   };
 
   // Helper function to check if a date has tasks
   const hasTasks = (date) => {
-    const dateString = date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateString = `${year}-${month}-${day}`;
     return tasks.some(task => task.date === dateString);
   };
 

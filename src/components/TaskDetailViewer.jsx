@@ -29,7 +29,10 @@ const TaskDetailViewer = ({ selectedDate, tasks, onClose, onToggleTask, onDelete
   // Get tasks for the selected date
   const getTasksForDate = () => {
     if (!selectedDate) return [];
-    const dateString = selectedDate.toISOString().split('T')[0];
+    const year = selectedDate.getFullYear();
+    const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(selectedDate.getDate()).padStart(2, '0');
+    const dateString = `${year}-${month}-${day}`;
     return tasks.filter(task => task.date === dateString);
   };
 
@@ -161,7 +164,10 @@ const TaskDetailViewer = ({ selectedDate, tasks, onClose, onToggleTask, onDelete
                 // Set the date to the selected date
                 const dateInput = document.querySelector('.date-input');
                 if (dateInput) {
-                  const dateString = selectedDate.toISOString().split('T')[0];
+                  const year = selectedDate.getFullYear();
+                  const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                  const day = String(selectedDate.getDate()).padStart(2, '0');
+                  const dateString = `${year}-${month}-${day}`;
                   dateInput.value = dateString;
                 }
               }
