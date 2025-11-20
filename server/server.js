@@ -5,7 +5,7 @@ import connectDB from './db.js';
 import Task from './models/Task.js';
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = 5003;
 
 // Connect to MongoDB
 connectDB();
@@ -139,6 +139,58 @@ app.delete('/api/tasks/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting task:', error);
     res.status(500).json({ message: 'Error deleting task' });
+  }
+});
+
+// Shift tasks by specified days
+app.put('/api/tasks/shift', async (req, res) => {
+  try {
+    const { days } = req.body;
+
+    if (days === undefined || days === null) {
+      return res.status(400).json({ message: 'Number of days is required' });
+    }
+
+    const shiftDays = parseInt(days);
+    if (isNaN(shiftDays)) {
+      return res.status(400).json({ message: 'Days must be a valid number' });
+    }
+
+    // Find all active (non-completed) tasks
+    const activeTasks = await Task.find({ completed: false });
+
+    if (activeTasks.length === 0) {
+      return res.json({ message: 'No active tasks found to shift', updatedTasks: [] });
+    }
+
+    const updatedTasks = [];
+
+    // Shift each task by the specified number of days
+    for (const task of activeTasks) {
+      const currentDate = new Date(task.date);
+      const newDate = new Date(currentDate);
+      newDate.setDate(newDate.getDate() + shiftDays);
+
+      // Convert new date back to YYYY-MM-DD format
+      const year = newDate.getFullYear();
+      const month = String(newDate.getMonth() + 1).padStart(2, '0');
+      const day = String(newDate.getDate()).padStart(2, '0');
+      const newDateString = `${year}-${month}-${day}`;
+
+      task.date = newDateString;
+      await task.save();
+      updatedTasks.push(task);
+    }
+
+    console.log(`Successfully shifted ${updatedTasks.length} tasks by ${shiftDays} days`);
+
+    res.json({
+      message: `Successfully shifted ${updatedTasks.length} tasks by ${shiftDays} days`,
+      updatedTasks
+    });
+  } catch (error) {
+    console.error('Error shifting tasks:', error);
+    res.status(500).json({ message: 'Error shifting tasks' });
   }
 });
 

@@ -77,6 +77,37 @@ function TaskScheduler() {
     }
   };
 
+  // Shift tasks by specified days
+  const shiftTasks = async (days) => {
+    try {
+      console.log(`Shifting all active tasks by ${days} days`);
+      const response = await fetch('http://localhost:5003/api/tasks/shift', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ days }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to shift tasks');
+      }
+
+      const data = await response.json();
+      console.log('Tasks shifted successfully:', data);
+
+      // Reload tasks to get the updated data
+      await loadTasks();
+
+      return data;
+    } catch (error) {
+      console.error('Failed to shift tasks:', error);
+      setError('Failed to shift tasks. Please try again.');
+      throw error;
+    }
+  };
+
   // Reset current page when filter changes
   useEffect(() => {
     setCurrentPage(1);
@@ -210,6 +241,7 @@ function TaskScheduler() {
                 selectedDate={selectedDate}
                 onToggleTask={toggleTask}
                 onDeleteTask={deleteTask}
+                onShiftTasks={shiftTasks}
               />
             </div>
 

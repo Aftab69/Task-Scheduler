@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import TaskDetailViewer from './TaskDetailViewer';
+import TaskShifter from './TaskShifter';
 
-const CalendarWidget = ({ tasks, onDateSelect, selectedDate, onToggleTask, onDeleteTask }) => {
+const CalendarWidget = ({ tasks, onDateSelect, selectedDate, onToggleTask, onDeleteTask, onShiftTasks }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [calendarDays, setCalendarDays] = useState([]);
   const [detailViewDate, setDetailViewDate] = useState(null);
@@ -210,6 +211,9 @@ const CalendarWidget = ({ tasks, onDateSelect, selectedDate, onToggleTask, onDel
           </div>
         )}
       </div>
+
+      {/* Task Shifter Component */}
+      <TaskShifter onShiftTasks={onShiftTasks} />
 
       {/* Task Detail Viewer Modal */}
       <TaskDetailViewer

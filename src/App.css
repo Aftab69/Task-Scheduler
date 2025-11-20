@@ -1235,3 +1235,134 @@ body.has-popup-open {
     align-self: flex-end;
   }
 }
+
+/* Task Shifter Styles */
+.task-shifter-container {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.task-shifter-content h3 {
+  margin: 0 0 16px 0;
+  color: #2d3748;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.task-shifter-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.shift-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shift-input-group label {
+  color: #4a5568;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.shift-input-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shift-days-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  background: #ffffff;
+  color: #2d3748;
+  transition: all 0.2s ease;
+}
+
+.shift-days-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.shift-days-input:disabled {
+  background: #f7fafc;
+  color: #a0aec0;
+  cursor: not-allowed;
+}
+
+.shift-days-label {
+  color: #718096;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.shift-tasks-button {
+  padding: 12px 24px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.shift-tasks-button:hover:not(:disabled) {
+  background: #5a67d8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.shift-tasks-button:disabled {
+  background: #cbd5e0;
+  color: #718096;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.shift-info {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.shift-info small {
+  color: #718096;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Responsive styles for Task Shifter */
+@media (max-width: 768px) {
+  .task-shifter-container {
+    margin-top: 16px;
+    padding: 16px;
+  }
+
+  .shift-input-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .shift-days-label {
+    text-align: center;
+  }
+}
