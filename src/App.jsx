@@ -1,9 +1,10 @@
 import './App.css'
+import TaskScheduler from './components/TaskScheduler'
 
 function App() {
   return (
-    <div>
-      <h1>Hi there buddy</h1>
+    <div className="app">
+      <TaskScheduler />
     </div>
   )
 }
