@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 const TaskDetailViewer = ({ selectedDate, tasks, onClose, onToggleTask, onDeleteTask }) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -83,7 +84,7 @@ const TaskDetailViewer = ({ selectedDate, tasks, onClose, onToggleTask, onDelete
 
   if (!selectedDate) return null;
 
-  return (
+  return createPortal(
     <div className={`task-detail-viewer ${isVisible ? 'visible' : ''}`} onClick={handleBackdropClick}>
       <div className={`task-detail-modal ${isVisible ? 'visible' : ''}`} onClick={e => e.stopPropagation()}>
         <div className="task-detail-header">
@@ -170,7 +171,8 @@ const TaskDetailViewer = ({ selectedDate, tasks, onClose, onToggleTask, onDelete
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
