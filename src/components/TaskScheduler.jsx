@@ -83,22 +83,7 @@ function TaskScheduler() {
   const shiftTasks = async (days) => {
     try {
       console.log(`Shifting all active tasks by ${days} days`);
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5003/api/tasks/shift', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` }),
-        },
-        body: JSON.stringify({ days }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to shift tasks');
-      }
-
-      const data = await response.json();
+      const data = await tasksAPI.shift(days);
       console.log('Tasks shifted successfully:', data);
 
       // Reload tasks to get the updated data
