@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import TaskForm from './TaskForm';
 import TaskList from './TaskList';
+import CalendarWidget from './CalendarWidget';
 import { tasksAPI } from '../api/tasks';
 
 function TaskScheduler() {
@@ -8,6 +9,7 @@ function TaskScheduler() {
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
 
   // Load tasks from MongoDB Atlas on mount
   useEffect(() => {
@@ -73,6 +75,13 @@ function TaskScheduler() {
     }
   };
 
+  // Handle date selection from calendar
+  const handleDateSelect = (date) => {
+    setSelectedDate(date);
+    // Optionally, you could filter tasks to show only selected date
+    // Or navigate to that date in the task list
+  };
+
   // Get filtered tasks
   const getFilteredTasks = () => {
     switch (filter) {
@@ -136,35 +145,47 @@ function TaskScheduler() {
         </div>
       )}
 
-      <TaskForm onAddTask={addTask} />
+      <div className="app-content">
+        <div className="main-content">
+          <TaskForm onAddTask={addTask} />
 
-      <div className="task-filters">
-        <button
-          className={filter === 'all' ? 'active' : ''}
-          onClick={() => setFilter('all')}
-        >
-          All ({tasks.length})
-        </button>
-        <button
-          className={filter === 'active' ? 'active' : ''}
-          onClick={() => setFilter('active')}
-        >
-          Active ({tasks.filter(t => !t.completed).length})
-        </button>
-        <button
-          className={filter === 'completed' ? 'active' : ''}
-          onClick={() => setFilter('completed')}
-        >
-          Completed ({tasks.filter(t => t.completed).length})
-        </button>
+          <div className="task-filters">
+            <button
+              className={filter === 'all' ? 'active' : ''}
+              onClick={() => setFilter('all')}
+            >
+              All ({tasks.length})
+            </button>
+            <button
+              className={filter === 'active' ? 'active' : ''}
+              onClick={() => setFilter('active')}
+            >
+              Active ({tasks.filter(t => !t.completed).length})
+            </button>
+            <button
+              className={filter === 'completed' ? 'active' : ''}
+              onClick={() => setFilter('completed')}
+            >
+              Completed ({tasks.filter(t => t.completed).length})
+            </button>
+          </div>
+
+          <TaskList
+            groupedTasks={groupedTasks}
+            sortedDates={sortedDates}
+            onToggleTask={toggleTask}
+            onDeleteTask={deleteTask}
+          />
+        </div>
+
+        <CalendarWidget
+          tasks={getFilteredTasks()}
+          onDateSelect={handleDateSelect}
+          selectedDate={selectedDate}
+          onToggleTask={toggleTask}
+          onDeleteTask={deleteTask}
+        />
       </div>
-
-      <TaskList
-        groupedTasks={groupedTasks}
-        sortedDates={sortedDates}
-        onToggleTask={toggleTask}
-        onDeleteTask={deleteTask}
-      />
     </div>
   );
 }
