@@ -30,7 +30,8 @@
       "Bash(set:*)",
       "Bash(nul:*)",
       "mcp__playwright__browser_fill_form",
-      "mcp__playwright__browser_run_code"
+      "mcp__playwright__browser_run_code",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []
