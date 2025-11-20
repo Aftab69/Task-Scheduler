@@ -50,10 +50,19 @@ const TaskDetailViewer = ({ selectedDate, tasks, onClose, onToggleTask, onDelete
   useEffect(() => {
     if (selectedDate) {
       setIsVisible(true);
+      document.body.classList.add('has-popup-open');
     } else {
       setIsVisible(false);
+      document.body.classList.remove('has-popup-open');
     }
   }, [selectedDate]);
+
+  // Clean up body class on unmount
+  useEffect(() => {
+    return () => {
+      document.body.classList.remove('has-popup-open');
+    };
+  }, []);
 
   const handleClose = () => {
     setIsVisible(false);

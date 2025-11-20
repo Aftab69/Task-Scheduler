@@ -358,12 +358,13 @@ input[type="date"]::-webkit-clear-button {
 
 .delete-button {
   background: linear-gradient(135deg, #fc8181, #f56565);
+  padding: 0;
   color: white;
   border: none;
   border-radius: 50%;
   width: 36px;
   height: 36px;
-  font-size: 19px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -800,7 +801,7 @@ input[type="date"]::-webkit-clear-button {
 
 .selected-date-info h4 {
   margin: 0 0 8px 0;
-  color: var(--color-text);
+  color: #161616;
   font-size: 16px;
   font-weight: 600;
 }
@@ -810,12 +811,12 @@ input[type="date"]::-webkit-clear-button {
 }
 
 .task-summary {
-  color: var(--color-text-soft);
+  color: #161616;
   font-size: 14px;
 }
 
 .no-tasks {
-  color: var(--color-text-soft);
+  color: #161616;
   font-size: 14px;
   font-style: italic;
 }
@@ -873,6 +874,18 @@ input[type="date"]::-webkit-clear-button {
 .task-detail-viewer.visible {
   opacity: 1;
   visibility: visible;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Prevent body scrolling when popup is open */
+body:has(.task-detail-viewer.visible) {
+  overflow: hidden;
+}
+
+/* Alternative approach - target root elements */
+body.has-popup-open {
+  overflow: hidden;
 }
 
 .task-detail-modal {
@@ -941,9 +954,10 @@ input[type="date"]::-webkit-clear-button {
 }
 
 .close-button {
+  padding: 0;
   background: rgba(255, 255, 255, 0.8);
   border: 2px solid #e2e8f0;
-  font-size: 32px;
+  font-size: 16px;
   color: #4a5568;
   cursor: pointer;
   width: 48px;
@@ -961,7 +975,6 @@ input[type="date"]::-webkit-clear-button {
   background: linear-gradient(135deg, #fc8181, #f56565);
   color: white;
   border-color: transparent;
-  transform: scale(1.1) rotate(90deg);
   box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
 }
 
@@ -1129,7 +1142,7 @@ input[type="date"]::-webkit-clear-button {
 }
 
 .task-summary {
-  color: var(--color-text-soft);
+  color: #161616;
   font-size: 14px;
 }
 
