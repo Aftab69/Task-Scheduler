@@ -482,7 +482,6 @@ input[type="date"]::-webkit-clear-button {
   padding: 64px 48px;
   color: #4a5568;
   border-radius: 20px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   margin-bottom: 32px;
 }
 
