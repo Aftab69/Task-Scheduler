@@ -1622,7 +1622,6 @@ body.has-popup-open {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f7fafc;
 }
 
 .loading-spinner {
