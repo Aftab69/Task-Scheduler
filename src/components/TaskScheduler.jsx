@@ -246,7 +246,7 @@ function TaskScheduler() {
 
             {/* Right: Tasks Section */}
             <div className="tasks-section">
-              <TaskForm onAddTask={addTask} />
+              <TaskForm onAddTask={addTask} selectedDate={selectedDate} />
 
               <div className="task-filters">
                 <button

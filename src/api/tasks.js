@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './config';
+import { API_BASE_URL } from './config.js';
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {

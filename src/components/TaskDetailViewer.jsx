@@ -161,15 +161,6 @@ const TaskDetailViewer = ({ selectedDate, tasks, onClose, onToggleTask, onDelete
               const taskInput = document.querySelector('.task-input');
               if (taskInput) {
                 taskInput.focus();
-                // Set the date to the selected date
-                const dateInput = document.querySelector('.date-input');
-                if (dateInput) {
-                  const year = selectedDate.getFullYear();
-                  const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-                  const day = String(selectedDate.getDate()).padStart(2, '0');
-                  const dateString = `${year}-${month}-${day}`;
-                  dateInput.value = dateString;
-                }
               }
             }, 300);
           }}>

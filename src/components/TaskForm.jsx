@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-function TaskForm({ onAddTask }) {
+function TaskForm({ onAddTask, selectedDate }) {
   const [text, setText] = useState('');
   const [date, setDate] = useState(getTodayDateString());
 
@@ -11,6 +11,17 @@ function TaskForm({ onAddTask }) {
     const day = String(now.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
+
+  // Update date when selectedDate prop changes
+  useEffect(() => {
+    if (selectedDate) {
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(selectedDate.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
+      setDate(dateString);
+    }
+  }, [selectedDate]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
