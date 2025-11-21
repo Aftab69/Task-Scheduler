@@ -1665,7 +1665,7 @@ body.has-popup-open {
 
   .form-row {
     flex-direction: column;
-    gap: 0;
+    gap: 10px;
   }
 
   .form-group input {
