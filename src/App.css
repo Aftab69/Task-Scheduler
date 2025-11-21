@@ -1627,6 +1627,9 @@ body.has-popup-open {
 .loading-spinner {
   text-align: center;
 }
+.loading-spinner p{
+  color: white;
+}
 
 .spinner {
   width: 40px;
