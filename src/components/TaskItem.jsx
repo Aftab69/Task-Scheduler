@@ -176,7 +176,15 @@ function TaskEditModal({ task, isOpen, onClose, onUpdate }) {
     setError('');
 
     try {
-      const updatedTask = await onUpdate({ id: task.id, text: editedText.trim(), date: editedDate || null });
+      // Import tasksAPI dynamically to avoid circular dependency
+      const { tasksAPI } = await import('../api/tasks');
+      const updatedTask = await tasksAPI.update(task.id, {
+        text: editedText.trim(),
+        date: editedDate || null
+      });
+
+      // Call onEdit with the updated task
+      onEdit(updatedTask);
       onClose();
     } catch (error) {
       console.error('Failed to update task:', error);
