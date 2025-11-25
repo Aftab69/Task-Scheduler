@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-function ReminderTasks({ tasks, onAddTask, onToggleTask, onDeleteTask }) {
+function ReminderTasks({ tasks, onAddTask, onToggleTask, onDeleteTask, onEditTask }) {
   const [newTaskText, setNewTaskText] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -94,6 +94,13 @@ function ReminderTasks({ tasks, onAddTask, onToggleTask, onDeleteTask }) {
                         title={task.completed ? 'Mark as incomplete' : 'Mark as complete'}
                       >
                         {task.completed ? '✓' : '○'}
+                      </button>
+                      <button
+                        onClick={() => onEditTask(task)}
+                        className="edit-reminder-button"
+                        title="Edit reminder task"
+                      >
+                        ✏️
                       </button>
                       <button
                         onClick={() => onDeleteTask(task.id)}
