@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { tasksAPI } from '../api/tasks';
 
+// Ensure tasksAPI is properly available globally as a fallback
+const safeTasksAPI = typeof tasksAPI !== 'undefined' ? tasksAPI : window.tasksAPI || null;
+
 function TaskEditModal({ task, isOpen, onClose, onUpdate }) {
   const [editedText, setEditedText] = useState('');
   const [editedDate, setEditedDate] = useState('');
@@ -90,16 +93,37 @@ function TaskEditModal({ task, isOpen, onClose, onUpdate }) {
     setError('');
 
     try {
-      const updatedTask = await tasksAPI.update(task.id, {
+      // Debug logging to ensure tasksAPI is available
+      console.log('TaskEditModal - tasksAPI available:', !!tasksAPI);
+      console.log('TaskEditModal - safeTasksAPI available:', !!safeTasksAPI);
+      console.log('TaskEditModal - tasksAPI.update available:', !!(tasksAPI && tasksAPI.update));
+      console.log('TaskEditModal - safeTasksAPI.update available:', !!(safeTasksAPI && safeTasksAPI.update));
+      console.log('TaskEditModal - task data:', { id: task.id, text: editedText.trim(), date: editedDate || null });
+
+      const apiToUse = safeTasksAPI || tasksAPI;
+
+      if (!apiToUse || typeof apiToUse.update !== 'function') {
+        throw new Error('tasksAPI.update is not available');
+      }
+
+      const updatedTask = await apiToUse.update(task.id, {
         text: editedText.trim(),
         date: editedDate || null
       });
 
+      console.log('TaskEditModal - task updated successfully:', updatedTask);
       onUpdate(updatedTask);
       onClose();
     } catch (error) {
       console.error('Failed to update task:', error);
-      setError('Failed to update task. Please try again.');
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        tasksAPIExists: !!tasksAPI,
+        updateMethodExists: !!(tasksAPI && tasksAPI.update),
+        taskId: task?.id
+      });
+      setError(`Failed to update task: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
