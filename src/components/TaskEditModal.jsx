@@ -1,87 +1,5 @@
 import { useState, useEffect } from 'react';
-
-function TaskItem({ task, onToggle, onDelete, onEdit }) {
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-
-  const handleDelete = () => {
-    if (showDeleteConfirm) {
-      onDelete(task.id);
-      setShowDeleteConfirm(false);
-    } else {
-      setShowDeleteConfirm(true);
-      // Auto-hide confirmation after 3 seconds
-      setTimeout(() => setShowDeleteConfirm(false), 3000);
-    }
-  };
-
-  const handleToggle = () => {
-    onToggle(task.id);
-  };
-
-  const handleEdit = () => {
-    setShowEditModal(true);
-  };
-
-  const handleCloseEdit = () => {
-    setShowEditModal(false);
-  };
-
-  const handleUpdate = (updatedTask) => {
-    onEdit(updatedTask);
-    setShowEditModal(false);
-  };
-
-  return (
-    <>
-      <div className={`task-item ${task.completed ? 'completed' : ''}`}>
-        <div className="task-content">
-          <input
-            type="checkbox"
-            checked={task.completed}
-            onChange={handleToggle}
-            className="task-checkbox"
-          />
-          <span className="task-text">{task.text}</span>
-        </div>
-
-        <div className="task-actions">
-          <button
-            onClick={handleEdit}
-            className="edit-button"
-            title="Edit task"
-          >
-            ✏️
-          </button>
-          {showDeleteConfirm ? (
-            <button
-              onClick={handleDelete}
-              className="delete-button confirm"
-              title="Click again to confirm delete"
-            >
-              Confirm?
-            </button>
-          ) : (
-            <button
-              onClick={handleDelete}
-              className="delete-button"
-              title="Delete task"
-            >
-              ×
-            </button>
-          )}
-        </div>
-      </div>
-
-      <TaskEditModal
-        task={task}
-        isOpen={showEditModal}
-        onClose={handleCloseEdit}
-        onUpdate={handleUpdate}
-      />
-    </>
-  );
-}
+import { tasksAPI } from '../api/tasks';
 
 function TaskEditModal({ task, isOpen, onClose, onUpdate }) {
   const [editedText, setEditedText] = useState('');
@@ -99,26 +17,25 @@ function TaskEditModal({ task, isOpen, onClose, onUpdate }) {
   useEffect(() => {
     if (isOpen) {
       setError('');
+      // Store current scroll position
+      const scrollY = window.scrollY;
+
       // Prevent body scroll when modal is open
       document.body.style.overflow = 'hidden';
       document.body.style.position = 'fixed';
-      document.body.style.top = `-${window.scrollY}px`;
+      document.body.style.top = `-${scrollY}px`;
       document.body.style.width = '100%';
       document.body.style.height = '100%';
 
       // Also target HTML element for better compatibility
       document.documentElement.style.overflow = 'hidden';
       document.documentElement.style.position = 'fixed';
-      document.documentElement.style.top = `-${window.scrollY}px`;
+      document.documentElement.style.top = `-${scrollY}px`;
       document.documentElement.style.width = '100%';
       document.documentElement.style.height = '100%';
 
       // Add class to body for CSS-based prevention
       document.body.classList.add('modal-open');
-
-      // Store scroll position as CSS variable for modal positioning compensation
-      const scrollY = window.scrollY;
-      document.documentElement.style.setProperty('--scroll-position', `${scrollY}px`);
     } else {
       // Restore body scroll when modal is closed
       const scrollY = document.body.style.top;
@@ -160,9 +77,6 @@ function TaskEditModal({ task, isOpen, onClose, onUpdate }) {
       document.documentElement.style.height = '';
 
       document.body.classList.remove('modal-open');
-
-      // Remove CSS variable
-      document.documentElement.style.removeProperty('--scroll-position');
     };
   }, [isOpen]);
 
@@ -176,7 +90,12 @@ function TaskEditModal({ task, isOpen, onClose, onUpdate }) {
     setError('');
 
     try {
-      const updatedTask = await onUpdate({ id: task.id, text: editedText.trim(), date: editedDate || null });
+      const updatedTask = await tasksAPI.update(task.id, {
+        text: editedText.trim(),
+        date: editedDate || null
+      });
+
+      onUpdate(updatedTask);
       onClose();
     } catch (error) {
       console.error('Failed to update task:', error);
@@ -260,4 +179,4 @@ function TaskEditModal({ task, isOpen, onClose, onUpdate }) {
   );
 }
 
-export default TaskItem;
+export default TaskEditModal;

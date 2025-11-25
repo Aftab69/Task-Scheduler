@@ -1,0 +1,48 @@
+# Render.com Deployment Configuration
+services:
+  # Backend Service (Web Service)
+  - type: web
+    name: task-scheduler-backend
+    env: node
+    plan: free
+    repo: https://github.com/your-username/task-scheduler.git
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+
+    environment:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: PORT
+        value: 10000
+      - key: FRONTEND_URL
+        sync: false
+
+  # Frontend Service (Static Site)
+  - type: web
+    name: task-scheduler-frontend
+    env: static
+    plan: free
+    repo: https://github.com/your-username/task-scheduler.git
+    rootDir: .
+    buildCommand: npm run build
+    publishDirectory: dist
+    autoDeploy: true
+
+    environment:
+      - key: VITE_API_URL
+        value: https://task-scheduler-backend.onrender.com/api
+
+databases:
+  # MongoDB Atlas (External Database)
+  - type: external
+    name: task-scheduler-db
+    plan: free

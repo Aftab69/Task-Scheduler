@@ -10,7 +10,11 @@
     "preview": "vite preview",
     "server": "node server/server.js",
     "server:dev": "node server/server.js",
-    "start:full": "concurrently \"npm run server\" \"npm run dev\""
+    "start": "node server/server.js",
+    "start:prod": "NODE_ENV=production node server/server.js",
+    "start:full": "concurrently \"npm run server\" \"npm run dev\"",
+    "build:prod": "vite build --mode production",
+    "serve:dist": "npx serve dist -l 3000"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
