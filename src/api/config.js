@@ -20,7 +20,7 @@ const getApiBaseUrl = () => {
     return `http://${window.location.hostname}:5003/api`;
   }
 
-  // Default for localhost development
+  // Default for localhost development - use local development server
   return 'http://localhost:5003/api';
 };
 

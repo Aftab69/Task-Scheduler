@@ -14,7 +14,7 @@ const taskSchema = new mongoose.Schema({
   },
   date: {
     type: String,
-    required: true
+    default: '' // Empty string for reminder tasks (no specific date)
   },
   completed: {
     type: Boolean,

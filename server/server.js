@@ -12,13 +12,16 @@ const PORT = process.env.PORT || 5003;
 // Connect to MongoDB
 connectDB();
 
-// CORS Configuration for production
+// CORS Configuration for development and production
+const isDevelopment = process.env.NODE_ENV === 'development';
 const allowedOrigins = [
   'http://localhost:5175',
   'http://localhost:5176',
   'http://localhost:5177',
   'http://localhost:5178',
   'http://localhost:5179',
+  'http://localhost:3000',
+  'http://localhost:5173', // Common Vite dev port
   'https://task-scheduler-frontend.onrender.com',
   'https://task-scheduler-frontend-fzgx.onrender.com',
   process.env.FRONTEND_URL
@@ -27,21 +30,35 @@ const allowedOrigins = [
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
-  // Check if the origin is allowed
-  if (allowedOrigins.includes(origin) || !origin) {
-    res.header('Access-Control-Allow-Origin', origin || '*');
-  } else if (process.env.NODE_ENV === 'development') {
+  // More flexible CORS for development
+  if (isDevelopment) {
     res.header('Access-Control-Allow-Origin', '*');
-  }
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Content-Length');
+    res.header('Access-Control-Allow-Credentials', 'true');
 
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+    } else {
+      next();
+    }
   } else {
-    next();
+    // Production CORS with allowed origins
+    if (allowedOrigins.includes(origin) || !origin) {
+      res.header('Access-Control-Allow-Origin', origin || '*');
+      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Content-Length');
+      res.header('Access-Control-Allow-Credentials', 'true');
+
+      if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+      } else {
+        next();
+      }
+    } else {
+      // Reject unauthorized origins in production
+      res.status(403).json({ message: 'CORS policy violation' });
+    }
   }
 });
 app.use(express.json());
@@ -203,14 +220,13 @@ app.post('/api/tasks', authenticate, async (req, res) => {
       return res.status(400).json({ message: 'Task text is required' });
     }
 
-    if (!date) {
-      return res.status(400).json({ message: 'Task date is required' });
-    }
+    // Date is optional for reminder tasks
+    const taskDate = date || '';
 
     const newTask = new Task({
       id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       text: text.trim(),
-      date,
+      date: taskDate,
       completed: false,
       createdAt: Date.now(),
       user: req.user._id
@@ -288,15 +304,16 @@ app.put('/api/tasks/shift', authenticate, async (req, res) => {
 
     // Shift each task by the specified number of days
     for (const task of activeTasks) {
-      const currentDate = new Date(task.date);
-      const newDate = new Date(currentDate);
-      newDate.setDate(newDate.getDate() + shiftDays);
+      const [year, month, day] = task.date.split('-').map(Number);
+      const currentDate = new Date(year, month - 1, day);
 
-      // Convert new date back to YYYY-MM-DD format
-      const year = newDate.getFullYear();
-      const month = String(newDate.getMonth() + 1).padStart(2, '0');
-      const day = String(newDate.getDate()).padStart(2, '0');
-      const newDateString = `${year}-${month}-${day}`;
+      // Add shift days and convert back to YYYY-MM-DD format
+      currentDate.setDate(currentDate.getDate() + shiftDays);
+
+      const newYear = currentDate.getFullYear();
+      const newMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const newDay = String(currentDate.getDate()).padStart(2, '0');
+      const newDateString = `${newYear}-${newMonth}-${newDay}`;
 
       task.date = newDateString;
       await task.save();

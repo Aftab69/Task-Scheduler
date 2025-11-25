@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-function TaskShifter({ onShiftTasks }) {
+function TaskShifter({ onShiftTasks, shiftStatus, shiftMessage }) {
   const [shiftDays, setShiftDays] = useState('');
   const [isShifting, setIsShifting] = useState(false);
 
@@ -9,7 +9,7 @@ function TaskShifter({ onShiftTasks }) {
 
     const days = parseInt(shiftDays);
     if (isNaN(days) || days === 0) {
-      alert('Please enter a valid number of days');
+      // Note: Parent component handles error state
       return;
     }
 
@@ -18,10 +18,10 @@ function TaskShifter({ onShiftTasks }) {
     try {
       await onShiftTasks(days);
       setShiftDays(''); // Clear input after successful shift
-      alert(`Successfully shifted all active tasks by ${days} day(s)`);
+      // Note: Parent component handles success state
     } catch (error) {
       console.error('Error shifting tasks:', error);
-      alert('Failed to shift tasks. Please try again.');
+      // Note: Parent component handles error state
     } finally {
       setIsShifting(false);
     }
@@ -65,6 +65,14 @@ function TaskShifter({ onShiftTasks }) {
             {isShifting ? 'Shifting...' : 'Shift'}
           </button>
         </form>
+
+        {/* Status message display */}
+        {shiftMessage && (
+          <div className={`shift-message ${shiftStatus}`}>
+            {shiftMessage}
+          </div>
+        )}
+
         <div className="shift-info">
           <small>
             Positive numbers shift tasks forward, negative numbers shift them backward.

@@ -34,7 +34,9 @@
       "Bash(npm run build:*)",
       "Bash(cat:*)",
       "mcp__playwright__browser_network_requests",
-      "mcp__playwright__browser_install"
+      "mcp__playwright__browser_install",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_press_key"
     ],
     "deny": [],
     "ask": []

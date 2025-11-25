@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import TaskForm from './TaskForm';
 import TaskList from './TaskList';
 import CalendarWidget from './CalendarWidget';
+import ReminderTasks from './ReminderTasks';
 import { tasksAPI } from '../api/tasks';
 import { useAuth } from '../context/AuthContext';
 
@@ -12,6 +13,8 @@ function TaskScheduler() {
   const [error, setError] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [shiftStatus, setShiftStatus] = useState(null); // null, 'success', or 'error'
+  const [shiftMessage, setShiftMessage] = useState('');
   const tasksPerPage = 10; // Show 10 tasks per page
   const { user, logout } = useAuth();
 
@@ -86,13 +89,32 @@ function TaskScheduler() {
       const data = await tasksAPI.shift(days);
       console.log('Tasks shifted successfully:', data);
 
-      // Reload tasks to get the updated data
-      await loadTasks();
+      // Update tasks state with the shifted data instead of reloading
+      const updatedTasks = data.updatedTasks || data.tasks || data || [];
+      setTasks(Array.isArray(updatedTasks) ? updatedTasks : []);
+
+      // Set success message
+      setShiftStatus('success');
+      setShiftMessage(`Successfully shifted all active tasks by ${days} day(s)`);
+
+      // Clear status message after 5 seconds
+      setTimeout(() => {
+        setShiftStatus(null);
+        setShiftMessage('');
+      }, 5000);
 
       return data;
     } catch (error) {
       console.error('Failed to shift tasks:', error);
-      setError('Failed to shift tasks. Please try again.');
+      setShiftStatus('error');
+      setShiftMessage('Failed to shift tasks. Please try again.');
+
+      // Clear error message after 5 seconds
+      setTimeout(() => {
+        setShiftStatus(null);
+        setShiftMessage('');
+      }, 5000);
+
       throw error;
     }
   };
@@ -153,15 +175,17 @@ function TaskScheduler() {
     // Or navigate to that date in the task list
   };
 
-  // Get filtered tasks
+  // Get filtered tasks (exclude reminder tasks - tasks without dates)
   const getFilteredTasks = () => {
+    const datedTasks = tasks.filter(task => task.date && task.date.trim() !== '');
+
     switch (filter) {
       case 'active':
-        return tasks.filter(task => !task.completed);
+        return datedTasks.filter(task => !task.completed);
       case 'completed':
-        return tasks.filter(task => task.completed);
+        return datedTasks.filter(task => task.completed);
       default:
-        return tasks;
+        return datedTasks;
     }
   };
 
@@ -241,6 +265,16 @@ function TaskScheduler() {
                 onToggleTask={toggleTask}
                 onDeleteTask={deleteTask}
                 onShiftTasks={shiftTasks}
+                shiftStatus={shiftStatus}
+                shiftMessage={shiftMessage}
+              />
+
+              {/* Reminder Tasks Widget - moved to left side below calendar */}
+              <ReminderTasks
+                tasks={tasks}
+                onAddTask={addTask}
+                onToggleTask={toggleTask}
+                onDeleteTask={deleteTask}
               />
             </div>
 
@@ -253,19 +287,19 @@ function TaskScheduler() {
                   className={filter === 'all' ? 'active' : ''}
                   onClick={() => setFilter('all')}
                 >
-                  All ({tasks.length})
+                  All ({getFilteredTasks().length})
                 </button>
                 <button
                   className={filter === 'active' ? 'active' : ''}
                   onClick={() => setFilter('active')}
                 >
-                  Active ({tasks.filter(t => !t.completed).length})
+                  Active ({getFilteredTasks().filter(t => !t.completed).length})
                 </button>
                 <button
                   className={filter === 'completed' ? 'active' : ''}
                   onClick={() => setFilter('completed')}
                 >
-                  Completed ({tasks.filter(t => t.completed).length})
+                  Completed ({getFilteredTasks().filter(t => t.completed).length})
                 </button>
               </div>
 
