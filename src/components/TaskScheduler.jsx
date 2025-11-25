@@ -3,6 +3,7 @@ import TaskForm from './TaskForm';
 import TaskList from './TaskList';
 import CalendarWidget from './CalendarWidget';
 import ReminderTasks from './ReminderTasks';
+import TaskEditModal from './TaskEditModal';
 import { tasksAPI } from '../api/tasks';
 import { useAuth } from '../context/AuthContext';
 
@@ -15,6 +16,8 @@ function TaskScheduler() {
   const [currentPage, setCurrentPage] = useState(1);
   const [shiftStatus, setShiftStatus] = useState(null); // null, 'success', or 'error'
   const [shiftMessage, setShiftMessage] = useState('');
+  const [editingTask, setEditingTask] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const tasksPerPage = 10; // Show 10 tasks per page
   const { user, logout } = useAuth();
 
@@ -82,6 +85,29 @@ function TaskScheduler() {
     }
   };
 
+  // Update task from MongoDB Atlas
+  const updateTask = async (taskData) => {
+    try {
+      console.log('Updating task:', taskData.id);
+      const updatedTask = await tasksAPI.update(taskData.id, {
+        text: taskData.text,
+        date: taskData.date
+      });
+      console.log('Task updated successfully:', updatedTask);
+
+      // Update tasks state with the updated task
+      setTasks(tasks.map(task =>
+        task.id === taskData.id ? updatedTask : task
+      ));
+
+      return updatedTask;
+    } catch (error) {
+      console.error('Failed to update task from MongoDB Atlas:', error);
+      setError('Failed to update task. Please try again.');
+      throw error;
+    }
+  };
+
   // Shift tasks by specified days
   const shiftTasks = async (days) => {
     try {
@@ -115,6 +141,38 @@ function TaskScheduler() {
         setShiftMessage('');
       }, 5000);
 
+      throw error;
+    }
+  };
+
+  const openEditModal = (taskOrId) => {
+    const task = typeof taskOrId === 'object' ? taskOrId : tasks.find(t => t.id === taskOrId);
+    if (task) {
+      setEditingTask(task);
+      setIsEditModalOpen(true);
+    }
+  };
+
+  const closeEditModal = () => {
+    setEditingTask(null);
+    setIsEditModalOpen(false);
+  };
+
+  const handleTaskUpdate = async (taskData) => {
+    try {
+      const updatedTask = await tasksAPI.update(taskData.id, {
+        text: taskData.text,
+        date: taskData.date
+      });
+
+      // Update tasks state with the updated task
+      setTasks(tasks.map(task =>
+        task.id === taskData.id ? updatedTask : task
+      ));
+
+      return updatedTask;
+    } catch (error) {
+      console.error('Failed to update task:', error);
       throw error;
     }
   };
@@ -275,6 +333,7 @@ function TaskScheduler() {
                 onAddTask={addTask}
                 onToggleTask={toggleTask}
                 onDeleteTask={deleteTask}
+                onEditTask={openEditModal}
               />
             </div>
 
@@ -308,6 +367,7 @@ function TaskScheduler() {
                 sortedDates={sortedDates}
                 onToggleTask={toggleTask}
                 onDeleteTask={deleteTask}
+                onEditTask={openEditModal}
               />
 
               {/* Pagination Controls */}
@@ -341,6 +401,14 @@ function TaskScheduler() {
           </div>
         </div>
       </div>
+
+      {/* Task Edit Modal */}
+      <TaskEditModal
+        task={editingTask}
+        isOpen={isEditModalOpen}
+        onClose={closeEditModal}
+        onUpdate={handleTaskUpdate}
+      />
     </div>
   );
 }
