@@ -9,6 +9,12 @@ import { authenticate, generateToken } from './middleware/auth.js';
 const app = express();
 const PORT = process.env.PORT || 5003;
 
+// Global request logging middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url} - ${req.ip}`);
+  next();
+});
+
 // Connect to MongoDB
 connectDB();
 
@@ -240,6 +246,52 @@ app.post('/api/tasks', authenticate, async (req, res) => {
   }
 });
 
+// Simple test route
+app.get('/api/simple', (req, res) => {
+  console.log('SIMPLE ROUTE HIT');
+  res.json({ message: 'Simple route works' });
+});
+
+// Test route
+app.put('/api/test', (req, res) => {
+  console.log('TEST ROUTE HIT');
+  res.json({ message: 'Test route works' });
+});
+
+// Update a task (protected route)
+console.log('REGISTERING UPDATE TASK ROUTE');
+app.put('/api/tasks/:id', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { text, date } = req.body;
+
+    console.log('UPDATE TASK REQUEST:', { id, text, date });
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: 'Task text is required' });
+    }
+
+    const task = await Task.findOne({ id, user: req.user._id });
+
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Update task fields
+    task.text = text.trim();
+    task.date = date || '';
+
+    const updatedTask = await task.save();
+
+    console.log(`Task updated successfully: ${id}`);
+
+    res.json(updatedTask);
+  } catch (error) {
+    console.error('Error updating task:', error);
+    res.status(500).json({ message: 'Error updating task' });
+  }
+});
+
 // Toggle task completion (protected route)
 app.put('/api/tasks/:id/toggle', authenticate, async (req, res) => {
   try {
@@ -340,6 +392,11 @@ app.get('/health', (req, res) => {
 // API health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Task Scheduler API is running' });
+});
+
+// 404 handler - should be after all routes
+app.use((req, res) => {
+  res.status(404).json({ message: 'Route not found' });
 });
 
 // Error handling middleware

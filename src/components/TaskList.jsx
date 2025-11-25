@@ -1,6 +1,6 @@
 import TaskItem from './TaskItem';
 
-function TaskList({ groupedTasks, sortedDates, onToggleTask, onDeleteTask }) {
+function TaskList({ groupedTasks, sortedDates, onToggleTask, onDeleteTask, onEditTask }) {
   const formatDate = (dateString) => {
     const date = new Date(dateString + 'T00:00:00');
     const today = new Date();
@@ -57,6 +57,7 @@ function TaskList({ groupedTasks, sortedDates, onToggleTask, onDeleteTask }) {
                   task={task}
                   onToggle={onToggleTask}
                   onDelete={onDeleteTask}
+                  onEdit={onEditTask}
                 />
               ))}
             </div>

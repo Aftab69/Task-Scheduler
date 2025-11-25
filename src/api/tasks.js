@@ -99,6 +99,25 @@ export const tasksAPI = {
     }
   },
 
+  // Update a task
+  update: async (id, taskData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(taskData),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update task');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating task:', error);
+      throw error;
+    }
+  },
+
   // Shift tasks by specified days
   shift: async (days) => {
     try {

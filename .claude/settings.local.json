@@ -36,7 +36,13 @@
       "mcp__playwright__browser_network_requests",
       "mcp__playwright__browser_install",
       "mcp__playwright__browser_console_messages",
-      "mcp__playwright__browser_press_key"
+      "mcp__playwright__browser_press_key",
+      "Bash(npx playwright:*)",
+      "mcp__playwright__browser_close",
+      "Bash(cd:*)",
+      "Bash(pkill:*)",
+      "Bash(powershell:*)",
+      "Bash(wmic process where \"ProcessId=17192\" delete:*)"
     ],
     "deny": [],
     "ask": []
