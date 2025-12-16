@@ -258,80 +258,8 @@ app.put('/api/test', (req, res) => {
   res.json({ message: 'Test route works' });
 });
 
-// Update a task (protected route)
-console.log('REGISTERING UPDATE TASK ROUTE');
-app.put('/api/tasks/:id', authenticate, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { text, date } = req.body;
-
-    console.log('UPDATE TASK REQUEST:', { id, text, date });
-
-    if (!text || !text.trim()) {
-      return res.status(400).json({ message: 'Task text is required' });
-    }
-
-    const task = await Task.findOne({ id, user: req.user._id });
-
-    if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
-    }
-
-    // Update task fields
-    task.text = text.trim();
-    task.date = date || '';
-
-    const updatedTask = await task.save();
-
-    console.log(`Task updated successfully: ${id}`);
-
-    res.json(updatedTask);
-  } catch (error) {
-    console.error('Error updating task:', error);
-    res.status(500).json({ message: 'Error updating task' });
-  }
-});
-
-// Toggle task completion (protected route)
-app.put('/api/tasks/:id/toggle', authenticate, async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const task = await Task.findOne({ id, user: req.user._id });
-
-    if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
-    }
-
-    task.completed = !task.completed;
-    await task.save();
-
-    res.json(task);
-  } catch (error) {
-    console.error('Error toggling task:', error);
-    res.status(500).json({ message: 'Error toggling task' });
-  }
-});
-
-// Delete a task (protected route)
-app.delete('/api/tasks/:id', authenticate, async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const task = await Task.findOneAndDelete({ id, user: req.user._id });
-
-    if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
-    }
-
-    res.json({ message: 'Task deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting task:', error);
-    res.status(500).json({ message: 'Error deleting task' });
-  }
-});
-
-// Shift tasks by specified days (protected route)
+// Shift tasks by specified days (protected route) - MUST BE BEFORE /api/tasks/:id
+console.log('REGISTERING SHIFT TASKS ROUTE');
 app.put('/api/tasks/shift', authenticate, async (req, res) => {
   try {
     console.log('=== SHIFT ENDPOINT DEBUG ===');
@@ -432,6 +360,80 @@ app.put('/api/tasks/shift', authenticate, async (req, res) => {
     res.status(500).json({ message: 'Error shifting tasks' });
   }
 });
+
+// Update a task (protected route)
+console.log('REGISTERING UPDATE TASK ROUTE');
+app.put('/api/tasks/:id', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { text, date } = req.body;
+
+    console.log('UPDATE TASK REQUEST:', { id, text, date });
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: 'Task text is required' });
+    }
+
+    const task = await Task.findOne({ id, user: req.user._id });
+
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Update task fields
+    task.text = text.trim();
+    task.date = date || '';
+
+    const updatedTask = await task.save();
+
+    console.log(`Task updated successfully: ${id}`);
+
+    res.json(updatedTask);
+  } catch (error) {
+    console.error('Error updating task:', error);
+    res.status(500).json({ message: 'Error updating task' });
+  }
+});
+
+// Toggle task completion (protected route)
+app.put('/api/tasks/:id/toggle', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const task = await Task.findOne({ id, user: req.user._id });
+
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    task.completed = !task.completed;
+    await task.save();
+
+    res.json(task);
+  } catch (error) {
+    console.error('Error toggling task:', error);
+    res.status(500).json({ message: 'Error toggling task' });
+  }
+});
+
+// Delete a task (protected route)
+app.delete('/api/tasks/:id', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const task = await Task.findOneAndDelete({ id, user: req.user._id });
+
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    res.json({ message: 'Task deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    res.status(500).json({ message: 'Error deleting task' });
+  }
+});
+
 
 // Health check endpoint for Render monitoring
 app.get('/health', (req, res) => {
