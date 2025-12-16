@@ -378,7 +378,7 @@ app.put('/api/tasks/shift', authenticate, async (req, res) => {
           const savedTask = await Task.findByIdAndUpdate(
             task._id,
             { date: newDateString },
-            { new: true, runValidators: true }
+            { new: true, runValidators: false }
           );
 
           if (!savedTask) {
