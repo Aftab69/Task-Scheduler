@@ -334,33 +334,46 @@ app.delete('/api/tasks/:id', authenticate, async (req, res) => {
 // Shift tasks by specified days (protected route)
 app.put('/api/tasks/shift', authenticate, async (req, res) => {
   try {
+    console.log('=== SHIFT ENDPOINT DEBUG ===');
+    console.log('Request body:', req.body);
+    console.log('User ID:', req.user._id);
+
     const { days } = req.body;
 
     if (days === undefined || days === null) {
+      console.log('Error: Days is undefined or null');
       return res.status(400).json({ message: 'Number of days is required' });
     }
 
     const shiftDays = parseInt(days);
     if (isNaN(shiftDays)) {
+      console.log('Error: Days is not a valid number:', days);
       return res.status(400).json({ message: 'Days must be a valid number' });
     }
 
+    console.log('Shift days validated:', shiftDays);
+
     // Find all active (non-completed) tasks for this user
     const activeTasks = await Task.find({ completed: false, user: req.user._id });
+    console.log('Found active tasks:', activeTasks.length);
 
     if (activeTasks.length === 0) {
+      console.log('No active tasks found');
       return res.json({ message: 'No active tasks found to shift', updatedTasks: [] });
     }
 
     const updatedTasks = [];
 
     // Shift each task by the specified number of days
-    for (const task of activeTasks) {
-      console.log(`Processing task: ${task.id}, text: "${task.text}", date: "${task.date}"`);
+    for (const i = 0; i < activeTasks.length; i++) {
+      const task = activeTasks[i];
+      console.log(`[${i+1}/${activeTasks.length}] Processing task: ID=${task.id}, text="${task.text}", date="${task.date}", _id=${task._id}`);
 
       // Only shift tasks that have valid dates (skip reminder tasks with empty dates)
       if (task.date && task.date.trim() !== '') {
         try {
+          console.log(`[${i+1}] Task has valid date, proceeding with shift...`);
+
           const [year, month, day] = task.date.split('-').map(Number);
           const currentDate = new Date(year, month - 1, day);
 
@@ -372,33 +385,39 @@ app.put('/api/tasks/shift', authenticate, async (req, res) => {
           const newDay = String(currentDate.getDate()).padStart(2, '0');
           const newDateString = `${newYear}-${newMonth}-${newDay}`;
 
-          console.log(`Task ${task.id}: shifting from ${task.date} to ${newDateString}`);
+          console.log(`[${i+1}] Task ${task.id}: shifting from ${task.date} to ${newDateString}`);
 
           // Use native MongoDB updateOne to bypass all Mongoose validation
+          console.log(`[${i+1}] Attempting MongoDB updateOne...`);
           const updateResult = await Task.updateOne(
             { _id: task._id, user: req.user._id },
             { $set: { date: newDateString } }
           );
 
+          console.log(`[${i+1}] Update result:`, updateResult);
+
           if (updateResult.modifiedCount === 0) {
-            throw new Error(`Failed to update task ${task.id}`);
+            console.log(`[${i+1}] Warning: No documents modified, but continuing...`);
           }
 
           // Fetch the updated task to return it
+          console.log(`[${i+1}] Fetching updated task...`);
           const savedTask = await Task.findById(task._id);
 
           if (!savedTask) {
+            console.log(`[${i+1}] Error: Could not find task after update`);
             throw new Error(`Failed to update task ${task.id}`);
           }
 
           updatedTasks.push(savedTask);
-          console.log(`Task ${task.id}: successfully saved with new date ${savedTask.date}`);
+          console.log(`[${i+1}] Task ${task.id}: successfully saved with new date ${savedTask.date}`);
         } catch (saveError) {
-          console.error(`Error saving task ${task.id}:`, saveError);
+          console.error(`[${i+1}] Error processing task ${task.id}:`, saveError);
+          console.error(`[${i+1}] Error stack:`, saveError.stack);
           throw saveError;
         }
       } else {
-        console.log(`Task ${task.id}: skipping (no date)`);
+        console.log(`[${i+1}] Task ${task.id}: skipping (no date)`);
       }
     }
 
