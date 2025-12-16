@@ -293,59 +293,35 @@ app.put('/api/tasks/shift', authenticate, async (req, res) => {
     const updatedTasks = [];
 
     // Shift each task by the specified number of days
-    for (const i = 0; i < activeTasks.length; i++) {
-      const task = activeTasks[i];
-      console.log(`[${i+1}/${activeTasks.length}] Processing task: ID=${task.id}, text="${task.text}", date="${task.date}", _id=${task._id}`);
+    for (const task of activeTasks) {
+      console.log(`Processing task: ID=${task.id}, text="${task.text}", date="${task.date}"`);
 
       // Only shift tasks that have valid dates (skip reminder tasks with empty dates)
-      if (task.date && task.date.trim() !== '') {
+      if (task.date && task.date.trim() !== '' && task.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
         try {
-          console.log(`[${i+1}] Task has valid date, proceeding with shift...`);
+          console.log(`Task ${task.id}: has valid date, proceeding with shift...`);
 
-          const [year, month, day] = task.date.split('-').map(Number);
-          const currentDate = new Date(year, month - 1, day);
+          // Parse date and add shift days
+          const [year, month, day] = task.date.split('-');
+          const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+          dateObj.setDate(dateObj.getDate() + shiftDays);
 
-          // Add shift days and convert back to YYYY-MM-DD format
-          currentDate.setDate(currentDate.getDate() + shiftDays);
+          // Format back to YYYY-MM-DD
+          const newDateString = dateObj.toISOString().split('T')[0];
+          console.log(`Task ${task.id}: shifting from ${task.date} to ${newDateString}`);
 
-          const newYear = currentDate.getFullYear();
-          const newMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
-          const newDay = String(currentDate.getDate()).padStart(2, '0');
-          const newDateString = `${newYear}-${newMonth}-${newDay}`;
+          // Directly update the task document
+          task.date = newDateString;
+          await task.save();
 
-          console.log(`[${i+1}] Task ${task.id}: shifting from ${task.date} to ${newDateString}`);
-
-          // Use native MongoDB updateOne to bypass all Mongoose validation
-          console.log(`[${i+1}] Attempting MongoDB updateOne...`);
-          const updateResult = await Task.updateOne(
-            { _id: task._id, user: req.user._id },
-            { $set: { date: newDateString } }
-          );
-
-          console.log(`[${i+1}] Update result:`, updateResult);
-
-          if (updateResult.modifiedCount === 0) {
-            console.log(`[${i+1}] Warning: No documents modified, but continuing...`);
-          }
-
-          // Fetch the updated task to return it
-          console.log(`[${i+1}] Fetching updated task...`);
-          const savedTask = await Task.findById(task._id);
-
-          if (!savedTask) {
-            console.log(`[${i+1}] Error: Could not find task after update`);
-            throw new Error(`Failed to update task ${task.id}`);
-          }
-
-          updatedTasks.push(savedTask);
-          console.log(`[${i+1}] Task ${task.id}: successfully saved with new date ${savedTask.date}`);
+          updatedTasks.push(task);
+          console.log(`Task ${task.id}: successfully updated`);
         } catch (saveError) {
-          console.error(`[${i+1}] Error processing task ${task.id}:`, saveError);
-          console.error(`[${i+1}] Error stack:`, saveError.stack);
-          throw saveError;
+          console.error(`Error processing task ${task.id}:`, saveError);
+          // Continue processing other tasks even if one fails
         }
       } else {
-        console.log(`[${i+1}] Task ${task.id}: skipping (no date)`);
+        console.log(`Task ${task.id}: skipping (invalid or empty date)`);
       }
     }
 
