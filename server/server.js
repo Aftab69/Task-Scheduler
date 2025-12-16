@@ -374,10 +374,18 @@ app.put('/api/tasks/shift', authenticate, async (req, res) => {
 
           console.log(`Task ${task.id}: shifting from ${task.date} to ${newDateString}`);
 
-          task.date = newDateString;
-          const savedTask = await task.save();
-          updatedTasks.push(savedTask);
+          // Use findByIdAndUpdate to avoid any Mongoose middleware issues
+          const savedTask = await Task.findByIdAndUpdate(
+            task._id,
+            { date: newDateString },
+            { new: true, runValidators: true }
+          );
 
+          if (!savedTask) {
+            throw new Error(`Failed to update task ${task.id}`);
+          }
+
+          updatedTasks.push(savedTask);
           console.log(`Task ${task.id}: successfully saved with new date ${savedTask.date}`);
         } catch (saveError) {
           console.error(`Error saving task ${task.id}:`, saveError);
