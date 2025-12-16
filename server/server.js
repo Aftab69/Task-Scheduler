@@ -356,22 +356,35 @@ app.put('/api/tasks/shift', authenticate, async (req, res) => {
 
     // Shift each task by the specified number of days
     for (const task of activeTasks) {
+      console.log(`Processing task: ${task.id}, text: "${task.text}", date: "${task.date}"`);
+
       // Only shift tasks that have valid dates (skip reminder tasks with empty dates)
       if (task.date && task.date.trim() !== '') {
-        const [year, month, day] = task.date.split('-').map(Number);
-        const currentDate = new Date(year, month - 1, day);
+        try {
+          const [year, month, day] = task.date.split('-').map(Number);
+          const currentDate = new Date(year, month - 1, day);
 
-        // Add shift days and convert back to YYYY-MM-DD format
-        currentDate.setDate(currentDate.getDate() + shiftDays);
+          // Add shift days and convert back to YYYY-MM-DD format
+          currentDate.setDate(currentDate.getDate() + shiftDays);
 
-        const newYear = currentDate.getFullYear();
-        const newMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
-        const newDay = String(currentDate.getDate()).padStart(2, '0');
-        const newDateString = `${newYear}-${newMonth}-${newDay}`;
+          const newYear = currentDate.getFullYear();
+          const newMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
+          const newDay = String(currentDate.getDate()).padStart(2, '0');
+          const newDateString = `${newYear}-${newMonth}-${newDay}`;
 
-        task.date = newDateString;
-        await task.save();
-        updatedTasks.push(task);
+          console.log(`Task ${task.id}: shifting from ${task.date} to ${newDateString}`);
+
+          task.date = newDateString;
+          const savedTask = await task.save();
+          updatedTasks.push(savedTask);
+
+          console.log(`Task ${task.id}: successfully saved with new date ${savedTask.date}`);
+        } catch (saveError) {
+          console.error(`Error saving task ${task.id}:`, saveError);
+          throw saveError;
+        }
+      } else {
+        console.log(`Task ${task.id}: skipping (no date)`);
       }
     }
 
